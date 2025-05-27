@@ -26,7 +26,7 @@ Cada pasta tem um dockerfile para sua respectiva API. Segue uma pequena explica�
 O docker compose gerencia e configura todos os containers que compõem o sistema. Segue a explicação do arquivo:
 
 - OBS 1: Todas as APIS fazem parte da rede `ecommerce-network` para comunicação interna.
-- OBS 1:  Todas as APIS Possuem um healthcheck que verifica os endpoints
+- OBS 2:  Todas as APIS Possuem um healthcheck que verifica os endpoints
 
 - **Products**
     - Cria a imagem Docker a partir do Dockerfile na pasta `./products`.

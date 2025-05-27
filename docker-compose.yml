@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # API de Produtos (Node.js)
+  products:
+    build:
+      context: ./products
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/products"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API de Pedidos (Python)
+  orders:
+    build:
+      context: ./orders
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    depends_on:
+      - db
+      - redis
+      - products
+    networks:
+      - ecommerce-network
+    environment:
+      - MYSQL_HOST=db
+      - REDIS_HOST=redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/order"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API de Pagamentos (PHP)
+  payments:
+    build:
+      context: ./payments
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    depends_on:
+      - orders
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/payment"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Banco de dados MySQL
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: ecommerce
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
